@@ -13,6 +13,14 @@ public class HTTPResponse {
         this.body = body;
     }
 
+    public static HTTPResponse error(int statusCode, String statusMessage, String errorMessage) {
+        String body = String.format(
+                "<html><body><h1>Error %d: %s</h1><p>%s</p></body></html>",
+                statusCode, statusMessage, errorMessage
+        );
+        return new HTTPResponse(statusCode, statusMessage, "text/html", body.getBytes());
+    }
+
     public int getStatusCode() {
         return statusCode;
     }

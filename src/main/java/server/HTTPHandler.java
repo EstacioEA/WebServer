@@ -1,6 +1,7 @@
 package server;
 
 import http.*;
+import service.FileService;
 
 import java.io.*;
 import java.net.Socket;
@@ -34,12 +35,7 @@ public class HTTPHandler implements Runnable {
             HTTPRequest httpRequest = parseRequest(requestLine);
 
             // Genero respuesta (response)
-            HTTPResponse httpResponse = new HTTPResponse(
-                    200,
-                    "OK",
-                    "text/html",
-                    "<html><body>hola mundo</body></html>".getBytes()
-            );
+            HTTPResponse httpResponse = serveFile(httpRequest.getResource());
 
             // Envío respuesta
             sendResponse(bw, httpResponse);
@@ -61,6 +57,22 @@ public class HTTPHandler implements Runnable {
         String httpVersion = parts[2];
 
         return new HTTPRequest(method, resource, httpVersion);
+    }
+
+    private HTTPResponse serveFile(String resource) {
+        try {
+            // Intentar leer el archivo
+            byte[] fileContent = FileService.readFile(resource);
+            String contentType = FileService.getContentType(resource);
+
+            System.out.println("Archivo servido: " + resource);
+            return new HTTPResponse(200, "OK", contentType, fileContent);
+
+        } catch (IOException e) {
+            // Archivo no encontrado o error de lectura
+            System.err.println("Archivo no encontrado: " + resource);
+            return HTTPResponse.error(404, "Not Found", "El recurso '" + resource + "' no existe");
+        }
     }
 
     private void sendResponse(BufferedWriter bw, HTTPResponse response) throws IOException {
